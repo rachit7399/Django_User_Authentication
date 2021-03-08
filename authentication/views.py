@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics, status, views, permissions
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, LoginSerializer
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
@@ -9,6 +9,41 @@ from django.urls import reverse
 from django.core.mail import send_mail
 import jwt
 from django.conf import settings
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+    def post(self, request):
+        user = self.request.data
+        try:
+            for field in ['email', 'password']:
+                if not user.get(field):
+                    return Response({f"{field} is required"}, status.HTTP_400_BAD_REQUEST)
+            ALL_DATA_LIST = User.objects.all().values()
+            USER_DATA_DICT = ALL_DATA_LIST[next((index for (index, d) in enumerate(ALL_DATA_LIST) if d["email"] == self.request.data['email']), None)]
+            
+            print("ALL_DATA_LIST = ", USER_DATA_DICT)
+            _user = User.objects.get(email=self.request.data['email']) 
+
+            if USER_DATA_DICT['password'] != self.request.data['password']:
+                return Response({f"{field} Incorrect Password "}, status.HTTP_400_BAD_REQUEST)
+            
+            token = RefreshToken.for_user(_user)
+            
+            serializer = LoginSerializer(_user)
+            _data = serializer.data
+            _data.update({'token': str(token.access_token)})
+            del _data['password']
+            
+            return Response({
+                'status': True,
+                'message': 'Login Successful',
+                'data': _data
+            })
+
+        except Exception:
+            return Response({f"{field} Doesn't Exists "}, status.HTTP_400_BAD_REQUEST)
+
 
 
 class RegisterView(generics.GenericAPIView):
