@@ -15,12 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import RegisterView, VerifyEmail, LoginView
+from .views import RegisterView, VerifyEmail, LoginView, ForgetPassView, ChangePassView, TokenTestingView
 
 
 urlpatterns = [
     path('register/',RegisterView.as_view(), name = 'register'),
-    path('login/',LoginView.as_view(), name = 'login'),
     path('email-verify/<str:pk>/', VerifyEmail.as_view(), name="email-verify"),
-
+    path('login/',LoginView.as_view(), name = 'login'),
+    path('forgetpass/',ForgetPassView.as_view(), name = 'ForgetPass'),
+    path('change-pass/<str:pk>/', ChangePassView.as_view(), name="ChangePass"),
+    path('tokentest/',TokenTestingView.as_view(), name = 'TokenTestingView'),
+    
 ]
